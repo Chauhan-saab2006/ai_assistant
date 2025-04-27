@@ -5,6 +5,7 @@ import pyautogui
 import time
 import pyperclip
 import datetime
+import subprocess
 
 # Initialize recognizer and text-to-speech engine
 recognizer = sr.Recognizer()
@@ -24,132 +25,166 @@ for voice in voices:
         break
     else:
          print("Female voice not found. Using default voice.")
+
+# Speak function
 def speak(text):
     """Speak the given text."""
     engine.say(text)
     engine.runAndWait()
 
-def processcommand(c):
-    """Process the user's command."""
-    if "open google" in c.lower():
-        print("Opening Google")
-        speak("Opening Google")
-        webbrowser.open("https://www.google.com")
 
-    elif "open youtube" in c.lower():
-        print("Opening YouTube")
-        speak("Opening YouTube")
-        webbrowser.open("https://www.youtube.com")
-
-    elif "open whatsapp" in c.lower():
-        print("Opening WhatsApp")
-        speak("Opening WhatsApp")
-        webbrowser.open("https://www.whatsapp.com")
-
-    elif "open github" in c.lower():
-        print("Opening GitHub")
-        speak("Opening GitHub")
-        webbrowser.open("https://www.github.com")
-    
-
-    elif "music" in c.lower():        
-        speak("please tell me the song name")
-        with sr.Microphone() as source:
-            print("listening.......")
-            audio = recognizer.listen(source, timeout=3, phrase_time_limit=3)
-            song_name = recognizer.recognize_google(audio).lower()
-            print(f"song_name:{song_name}")
-            time.sleep(1)
-           # Open YouTube and search for the song
-            webbrowser.open(f"https://www.youtube.com/results?search_query={song_name}")
-            time.sleep(5)  # Wait for the page to load    
-        pyautogui.click(x=282, y=533)  
-        speak("Enjoy your music!")
-                 
-    elif "message" in c.lower():
-        # Get the message from the user
-            speak("please tell me the message")
-            with sr.Microphone() as source:
-                print("listening.......")
-                audio = recognizer.listen(source, timeout=3, phrase_time_limit=3)
-                message = recognizer.recognize_google(audio).lower()
-                print(f"message:{message}")
-        # Get the contact name from the user
-            speak("Please tell me the name of the contact.")
-            with sr.Microphone() as source: 
-                audio = recognizer.listen(source, timeout=2, phrase_time_limit=2)
-                contact = recognizer.recognize_google(audio).lower()
-                print(f"contact:{contact}")
-                speak(f"sending message to {contact}")            
-        # open whatsapp web
-                webbrowser.open("https://web.whatsapp.com/")
-                time.sleep(8)   # wait for the page to load    
-        # Copy the message to the clipboard
-                pyperclip.copy(message)    
-        # Search for the contact and send the message
-                pyautogui.click (x=239, y=313)              
-                time.sleep(3)  
-        # it search the contact name in the search bar of whatsapp                       
-                pyautogui.write(contact) 
-                time.sleep(5)
-        # it click on the first contact of the whatsapp        
-                pyautogui.press("enter")  
-                time.sleep(2)
-        # it click on the message input box of whatsapp        
-                pyautogui.click(x=1086, y=965)  
-        # it paste the message from the clipboard        
-                pyautogui.hotkey("ctrl", "v")  
-                time.sleep(2)
-        # it click on the send button of whatsapp        
-                pyautogui.press("enter")                 
-                speak("Message sent successfully.")
-                        
-    # it colose the page in which is open
-    elif "exit" in c.lower():
-          pyautogui.click (x=1881, y=21) 
-          time.sleep(3)     
-    
-    elif "time" in c.lower():
-        # Get the current time in 12-hour format with AM/PM
-        current_time = datetime.datetime.now().strftime("%I:%M %p")
-        print(f"The time is {current_time}") 
-        speak(f"The time is {current_time}") 
-    
-    elif "switch off" in c.lower():
-        speak("Goodbye sir i am going to sleep")
-        exit()
-
-    else:
-        speak("Sorry, I didn't understand ")
-
-if __name__ == "__main__":
-    speak("Initializing khushi...")
-    while True:
+def takeCommand():
+    # Listen for a command from the user using the microphone and return the recognized text.
+    with sr.Microphone() as source:
+        recognizer.adjust_for_ambient_noise(source)  # Adjust for background noise to improve recognition accuracy
+        print("Listening...")
+        audio = recognizer.listen(source)  # Capture audio input from the microphone
         try:
-            # Listen for the keyword "khushi"
-            with sr.Microphone() as source:
-                recognizer.adjust_for_ambient_noise(source)  
-                print("Listening for the keyword 'khushi'...")
-                audio = recognizer.listen(source, timeout=2, phrase_time_limit=2)
-                word = recognizer.recognize_google(audio).lower()
-
-            if "khushi" in word:
-                speak("Yes sir")
-                # Listen for the actual command
-                with sr.Microphone() as source:
-                    recognizer.adjust_for_ambient_noise(source)
-                    print("khushi is active. Listening for your command...")
-                    audio = recognizer.listen(source, timeout=2, phrase_time_limit=2)
-                    command = recognizer.recognize_google(audio).lower()
-
-                # Process the command
-                processcommand(command)
-
-        except sr.WaitTimeoutError:
-            print("Listening timed out. Restarting...")
+            query = recognizer.recognize_google(audio, language="en-in")  # Recognize speech using Google API
+            print(f"user said: {query}")
+            return query.lower()  # Return the recognized text in lowercase
         except sr.UnknownValueError:
-            print("Sorry, I couldn't understand that. Please try again.")
+            # Handle case where speech was not understood
+            print("Sorry, I didn't catch that. Please try again.")
+            return None
         except sr.RequestError as e:
+            # Handle API request errors
             print(f"Could not request results from Google Speech Recognition service; {e}")
+            return None
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            # Handle any other exceptions
+            print("Some error occurred. Please try again.")
+            return None
+# it will open the sites based on the query
+
+def open_sites(query):
+    """Open specific websites based on the query."""
+    sites = [
+        ["youtube", "https://www.youtube.com"],
+        ["wikipedia", "https://www.wikipedia.com"],
+        ["google", "https://www.google.com"],
+        ["instagram", "https://www.instagram.com"],
+        ["whatsapp", "https://www.whatsapp.com"],
+        ["github", "https://www.github.com"]
+    ]
+    for site in sites:
+        if f"open {site[0]}" in query:
+            speak(f"Opening {site[0]} sir...")
+            webbrowser.open(site[1])
+            return True
+    return False
+
+#  it will tell the time based on the query
+def tell_time():
+    """Tell the current time."""
+    hour = datetime.datetime.now().strftime("%I")
+    minute = datetime.datetime.now().strftime("%M")
+    am_pm = datetime.datetime.now().strftime("%p")
+    print(f"Sir, the time is {hour} {minute} {am_pm}") 
+    speak(f"Sir, the time is {hour} {minute} {am_pm}") 
+
+def exit():
+    pyautogui.click (x=1881, y=21)         # Adjust coordinates for your screen resolution
+    time.sleep(3) 
+    
+def play_music():
+    """Play music on YouTube."""
+    speak("Please tell me the name of the song.")
+    song_name = takeCommand()
+    if song_name:
+        speak(f"Playing {song_name} on YouTube.")
+        webbrowser.open(f"https://www.youtube.com/results?search_query={song_name}")
+        time.sleep(5)
+        pyautogui.click(x=282, y=533)  # Adjust coordinates for your screen resolution
+
+def send_message():
+    """Send a message on WhatsApp."""
+    speak("Please tell me the message.")
+    message = takeCommand()
+    if message:
+        speak("Please tell me the name of the contact.")
+        contact = takeCommand()
+        if contact:
+            speak(f"Sending message to {contact}.")
+            webbrowser.open("https://web.whatsapp.com/")
+            time.sleep(10)  # Wait for WhatsApp Web to load
+            pyperclip.copy(message)
+            pyautogui.click(x=239, y=313)  # Adjust coordinates for the search bar
+            time.sleep(3)
+            pyautogui.write(contact)
+            time.sleep(5)
+            pyautogui.press("enter")
+            time.sleep(2)
+            pyautogui.click(x=1086, y=965)  # Adjust coordinates for the message box
+            pyautogui.hotkey("ctrl", "v")
+            time.sleep(2)
+            pyautogui.press("enter")
+            speak("Message sent successfully.")
+       
+            speak("Message sent successfully.")
+
+def open_chrome(chrome):
+    """
+    Open an application using its executable path.
+
+    Args:
+        app_path (str): The full path to the application's executable file.
+    """
+    try:
+        subprocess.Popen(chrome, shell=True)  # Open the application
+        speak("Opening Chrome")
+    except Exception as e:
+        print(f"Failed to open the application: {e}")
+        speak("Sorry, I couldn't open the application.")
+        
+def open_cursor(cursor):
+    try:
+        subprocess.Popen(cursor, shell=True)  # Open the application
+        speak("Opening cursor")
+    except Exception as e:
+        print(f"Failed to open the application: {e}")
+        speak("Sorry, I couldn't open the application.")
+   
+
+
+# Main function
+if __name__ == '__main__':
+    print('ask me anything')
+    speak("yes sir")
+    while True:
+        query = takeCommand()
+        if query is None:
+            continue  
+
+        # Handle commands
+        if open_sites(query):
+            continue
+        
+        elif "time" in query:
+            tell_time()
+            
+        elif "music" in query:
+            play_music()
+            
+        elif "message" in query:
+            send_message()
+            
+        elif "close" in query:
+            exit()
+            speak("exiting the site")    
+       
+        elif "jarvis shutdown" in query:
+            speak("Goodbye, sir. Have a great day!")
+            break
+       
+        elif "open chrome" in query:
+            chrome_path = r"C:\Users\Public\Desktop\Google Chrome.lnk"  # Correct path to Chrome
+            open_chrome(chrome_path)  # Call the function with the path
+
+        elif "open cursor" in query:
+            cursor_path = r"C:\Users\lenovo\Desktop\Cursor.lnk"  # Correct path to Chrome
+            open_cursor(cursor_path)  # Call the function with the path
+       
+        else:
+            print("Sorry, I didn't understand that command.")   
+                    
