@@ -1,4 +1,5 @@
 import speech_recognition as sr
+import google.generativeai as genai
 import webbrowser
 import pyttsx3
 import pyautogui
@@ -12,6 +13,12 @@ import subprocess
 # Initialize recognizer and text-to-speech engine
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
+
+API_KEY = "AIzaSyD_E8mcnGagr9GFxWvpPLuf8K6YknCQvvE"
+genai.configure(api_key=API_KEY)
+
+model = genai.GenerativeModel("gemini-2.0-flash-exp")
+chat = model.start_chat()
 
 
 # Speak function
@@ -135,6 +142,16 @@ def open_cursor(cursor):
         print(f"Failed to open the application: {e}")
         speak("Sorry, I couldn't open the application.")
    
+def gen_ai():
+    while True:
+        query = input("you: ")
+        if query.lower() == "exit":
+            break
+        try:
+            response = chat.send_message(query)
+            speak(f"gemini: {response.text}")
+        except Exception as e:
+            print("Error:", e)
 
 
 # Main function
@@ -176,5 +193,9 @@ if __name__ == '__main__':
             open_cursor(cursor_path)  # Call the function with the path
        
         else:
-            print("Sorry, I didn't understand that command.")   
-                    
+            try:
+                response = chat.send_message(query)
+                print(f"{response.text}")
+                speak(f"{response.text}")
+            except Exception as e:
+                print("Error:", e)
