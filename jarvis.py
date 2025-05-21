@@ -8,7 +8,7 @@ import pyperclip
 import datetime
 import subprocess
 
-
+# khfdb
 
 # Initialize recognizer and text-to-speech engine
 recognizer = sr.Recognizer()
