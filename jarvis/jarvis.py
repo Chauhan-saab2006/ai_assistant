@@ -14,7 +14,7 @@ import subprocess
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
 
-API_KEY = "AIzaSyD_E8mcnGagr9GFxWvpPLuf8K6YknCQvvE"
+API_KEY = "AIzaSyD5tyymvZOSG7stfLK-2i9EU0p1MY0_uPc"
 genai.configure(api_key=API_KEY)
 
 model = genai.GenerativeModel("gemini-2.0-flash-exp")
