@@ -85,9 +85,16 @@ def tell_time():
     print(f"Sir, the time is {hour} {minute} {am_pm}") 
     speak(f"Sir, the time is {hour} {minute} {am_pm}") 
 
-def exit():
-    pyautogui.click (x=1881, y=21)         # Adjust coordinates for your screen resolution
-    time.sleep(3) 
+def exit_browser():
+    """Close the current browser tab/window."""
+    try:
+        # Use keyboard shortcut to close tab (Ctrl+W)
+        pyautogui.hotkey('ctrl', 'w')
+        time.sleep(1)
+        speak("Closed the browser tab")
+    except Exception as e:
+        print(f"Error closing browser: {e}")
+        speak("Could not close the browser")
     
 def play_music():
     """Play music on YouTube."""
@@ -121,8 +128,6 @@ def send_message():
             pyautogui.hotkey("ctrl", "v")
             time.sleep(2)
             pyautogui.press("enter")
-            speak("Message sent successfully.")
-       
             speak("Message sent successfully.")
 
 def open_chrome(chrome):
@@ -184,7 +189,7 @@ if __name__ == '__main__':
             send_message()
             
         elif "close" in query:
-            exit()
+            exit_browser()
             speak("exiting the site")    
        
         elif "jarvis shutdown" in query:
