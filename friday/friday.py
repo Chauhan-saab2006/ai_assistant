@@ -83,16 +83,9 @@ def tell_time():
     print(f"Sir, the time is {hour} {minute} {am_pm}") 
     speak(f"Sir, the time is {hour} {minute} {am_pm}") 
 
-def exit_browser():
-    """Close the current browser tab/window."""
-    try:
-        # Use keyboard shortcut to close tab (Ctrl+W)
-        pyautogui.hotkey('ctrl', 'w')
-        time.sleep(1)
-        speak("Closed the browser tab")
-    except Exception as e:
-        print(f"Error closing browser: {e}")
-        speak("Could not close the browser")
+def exit():
+    pyautogui.click (x=1881, y=21)         # Adjust coordinates for your screen resolution
+    time.sleep(3) 
     
 def play_music():
     """Play music on YouTube."""
@@ -127,6 +120,8 @@ def send_message():
             time.sleep(2)
             pyautogui.press("enter")
             speak("Message sent successfully.")
+       
+            speak("Message sent successfully.")
 
 def open_chrome(chrome):
     """
@@ -151,6 +146,7 @@ def open_cursor(cursor):
         speak("Sorry, I couldn't open the application.")
    
 
+
 # Main function
 if __name__ == '__main__':
     print('ask me anything')
@@ -159,15 +155,6 @@ if __name__ == '__main__':
         query = takeCommand()
         if query is None:
             continue  
-
-        query = query.lower()  # Normalize input to lowercase
-
-        # Check if "jarvis" is mentioned
-        if "jarvis" not in query:
-            continue  # Ignore everything else if jarvis is not mentioned
-
-        # Remove the word "jarvis" to process commands easily
-        query = query.replace("jarvis", "").strip()
 
         # Handle commands
         if open_sites(query):
@@ -183,26 +170,21 @@ if __name__ == '__main__':
             send_message()
             
         elif "close" in query:
-            speak("Exiting the site")
             exit()
+            speak("exiting the site")    
        
-        elif "shutdown" in query:  # Changed to handle "jarvis shutdown"
+        elif "friday shutdown" in query:
             speak("Goodbye, sir. Have a great day!")
             break
        
         elif "open chrome" in query:
             chrome_path = r"C:\Users\Public\Desktop\Google Chrome.lnk"  # Correct path to Chrome
-            open_chrome(chrome_path)
-       
+            open_chrome(chrome_path)  # Call the function with the path
+
         elif "open cursor" in query:
-            cursor_path = r"C:\Users\lenovo\Desktop\Cursor.lnk"
-            open_cursor(cursor_path)
+            cursor_path = r"C:\Users\lenovo\Desktop\Cursor.lnk"  # Correct path to Chrome
+            open_cursor(cursor_path)  # Call the function with the path
        
         else:
-            try:
-                response = chat.send_message(query)
-                print(f"{response.text}")
-                speak(f"{response.text}")
-            except Exception as e:
-                print("Error:", e)
+            print("Sorry, I didn't understand that command.")   
                     
