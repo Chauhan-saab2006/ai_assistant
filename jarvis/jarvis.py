@@ -7,14 +7,20 @@ import time
 import pyperclip
 import datetime
 import subprocess
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 # khfdb
 
 # Initialize recognizer and text-to-speech engine
 recognizer = sr.Recognizer()
 engine = pyttsx3.init()
 
-API_KEY = "AIzaSyD5tyymvZOSG7stfLK-2i9EU0p1MY0_uPc"
+API_KEY = os.getenv('GEMINI_API_KEY')
+if not API_KEY:
+    raise ValueError("API key not found in environment variables")
+
 genai.configure(api_key=API_KEY)
 
 model = genai.GenerativeModel("gemini-2.0-flash-exp")
@@ -56,6 +62,16 @@ def takeCommand():
     except Exception as e:
         print(f"Error accessing microphone: {e}")
         speak("There was an error accessing the microphone.")
+        return None
+    except sr.UnknownValueError:
+        # Handle case where speech was not understood
+        print("Sorry, I didn't catch that. Please try again.")
+        speak("Sorry, I didn't catch that. Please try again.")
+        return None
+    except sr.RequestError as e:
+        # Handle API request errors
+        print(f"Could not request results from Google Speech Recognition service; {e}")
+        speak("There seems to be an issue with the speech recognition service.")
         return None
 # it will open the sites based on the query
 
@@ -123,7 +139,6 @@ def send_message():
             pyautogui.press("enter")
             speak("Message sent successfully.")
        
-            speak("Message sent successfully.")
 
 def open_chrome(chrome):
     """
@@ -155,10 +170,12 @@ def gen_ai():
         if query.lower() == "exit":
             break
         try:
-            response = chat.send_message(query)
-            speak(f"gemini: {response.text}")
+           genai.configure(api_key=API_KEY)
+           model = genai.GenerativeModel("gemini-2.0-flash-exp")
+           chat = model.start_chat()
         except Exception as e:
-            print("Error:", e)
+           print(f"Error configuring Gemini API: {e}")
+           exit(1)
 
 
 # Main function
@@ -200,9 +217,10 @@ if __name__ == '__main__':
             open_cursor(cursor_path)  # Call the function with the path
        
         else:
-            try:
-                response = chat.send_message(query)
-                print(f"{response.text}")
-                speak(f"{response.text}")
-            except Exception as e:
-                print("Error:", e)
+           try:
+              response = chat.send_message(query)
+              print(f"Gemini: {response.text}")
+              speak(response.text)
+           except Exception as e:
+              print(f"Error: {e}")
+              speak("I encountered an error processing your request.")
